@@ -6,7 +6,7 @@ Send photos, files, and text between your Windows PC and your iPhone — over yo
 
 **[👉 Download the latest version](../../releases/latest)**
 
-Grab `LocalLink-Setup-1.0.0.exe` from the latest release, then follow the steps below.
+Download the installer (`LocalLink-Setup-*.exe`) from the latest release, then follow the steps below.
 
 ## Setup (2 minutes)
 
