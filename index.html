@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Send files between your PC and iPhone over your own Wi-Fi. Free, private, no cloud, no account.">
+<meta name="theme-color" content="#08080b">
+<meta property="og:title" content="LocalLink">
+<meta property="og:description" content="Move files between your PC and iPhone - no cable, no cloud, no fuss.">
+<meta property="og:type" content="website">
+<title>LocalLink — Send files between your PC and iPhone</title>
+<style>
+  /* ── LocalLink dark-glass tokens (from pc-app/src/renderer/styles.css) ── */
+  :root{
+    --bg:#08080b; --bg-2:#101014;
+    --surface:rgba(255,255,255,.06); --surface-2:rgba(255,255,255,.09); --surface-hover:rgba(255,255,255,.15);
+    --border:rgba(255,255,255,.09); --border-strong:rgba(255,255,255,.17);
+    --accent:#ffffff; --on-accent:#000000;
+    --text:#ffffff; --text-2:rgba(255,255,255,.48); --text-3:rgba(255,255,255,.24);
+    --sent:#34d399; --link:#e2d9f3;
+    --orb-1:rgba(255,255,255,.11); --orb-2:rgba(201,190,240,.10); --orb-3:rgba(255,255,255,.06);
+    --radius:28px; --radius-sm:18px; --radius-xs:10px;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Consolas",monospace;
+    --maxw:940px;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#eef0f4; --bg-2:#ffffff;
+      --surface:rgba(0,0,0,.04); --surface-2:rgba(0,0,0,.06); --surface-hover:rgba(0,0,0,.10);
+      --border:rgba(0,0,0,.10); --border-strong:rgba(0,0,0,.18);
+      --accent:#1a1a1f; --on-accent:#ffffff;
+      --text:#16161a; --text-2:rgba(0,0,0,.58); --text-3:rgba(0,0,0,.38);
+      --sent:#12a06f; --link:#6d3bd1;
+      --orb-1:rgba(90,120,160,.14); --orb-2:rgba(109,59,209,.10); --orb-3:rgba(90,120,160,.08);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef0f4; --bg-2:#ffffff;
+    --surface:rgba(0,0,0,.04); --surface-2:rgba(0,0,0,.06); --surface-hover:rgba(0,0,0,.10);
+    --border:rgba(0,0,0,.10); --border-strong:rgba(0,0,0,.18);
+    --accent:#1a1a1f; --on-accent:#ffffff;
+    --text:#16161a; --text-2:rgba(0,0,0,.58); --text-3:rgba(0,0,0,.38);
+    --sent:#12a06f; --link:#6d3bd1;
+    --orb-1:rgba(90,120,160,.14); --orb-2:rgba(109,59,209,.10); --orb-3:rgba(90,120,160,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#08080b; --bg-2:#101014;
+    --surface:rgba(255,255,255,.06); --surface-2:rgba(255,255,255,.09); --surface-hover:rgba(255,255,255,.15);
+    --border:rgba(255,255,255,.09); --border-strong:rgba(255,255,255,.17);
+    --accent:#ffffff; --on-accent:#000000;
+    --text:#ffffff; --text-2:rgba(255,255,255,.48); --text-3:rgba(255,255,255,.24);
+    --sent:#34d399; --link:#e2d9f3;
+    --orb-1:rgba(255,255,255,.11); --orb-2:rgba(201,190,240,.10); --orb-3:rgba(255,255,255,.06);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  a{color:inherit;text-decoration:none}
+
+  /* ── soft static glass glows (pure gradients — no blur filter, no animation) ── */
+  .aura{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(46vw 46vw at 80% -8%, var(--orb-1), transparent 60%),
+      radial-gradient(42vw 42vw at 6% 112%, var(--orb-2), transparent 60%),
+      radial-gradient(34vw 34vw at 56% 46%, var(--orb-3), transparent 66%);}
+
+  /* nav */
+  nav{display:flex;align-items:center;justify-content:space-between;
+    padding:22px 24px;max-width:var(--maxw);margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:600;letter-spacing:.2px;font-size:16px;}
+  .logo{width:30px;height:30px;border-radius:9px;flex:none;background:var(--accent);display:grid;place-items:center;}
+  .logo svg{width:16px;height:16px}
+  .nav-link{color:var(--text-2);font-size:14px;font-weight:500;display:inline-flex;align-items:center;gap:7px;
+    padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);
+    background:var(--surface);backdrop-filter:blur(10px);transition:.16s;}
+  .nav-link:hover{color:var(--text);background:var(--surface-hover);}
+
+  /* hero */
+  .hero{padding:clamp(44px,8vw,92px) 0 clamp(30px,5vw,52px);}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,56px);align-items:center;}
+  .hero-player{aspect-ratio:16/10;}
+  @media (max-width:800px){.hero-grid{grid-template-columns:1fr;gap:36px}}
+  .pill{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;
+    color:var(--text-2);background:var(--surface);border:1px solid var(--border);
+    padding:6px 13px;border-radius:var(--radius-sm);margin-bottom:22px;backdrop-filter:blur(10px);}
+  .pill .pip{width:7px;height:7px;border-radius:50%;background:var(--sent);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--sent) 20%,transparent);}
+  h1{font-size:clamp(33px,5.6vw,52px);line-height:1.05;letter-spacing:-.03em;font-weight:700;margin:0 0 18px;text-wrap:balance;}
+  .sub{font-size:clamp(16px,2vw,18px);color:var(--text-2);max-width:46ch;margin:0 0 30px;}
+  .sub b{color:var(--text);font-weight:600}
+
+  .cta-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:11px;font-family:var(--sans);font-size:16px;font-weight:600;
+    padding:14px 24px;border-radius:var(--radius-sm);border:none;cursor:pointer;letter-spacing:-.01em;
+    color:var(--on-accent);background:var(--accent);transition:transform .16s ease,opacity .16s ease;}
+  .btn:hover{transform:translateY(-2px);opacity:.92;}
+  .btn:active{transform:translateY(0)}
+  .btn svg{width:18px;height:18px}
+  .btn-meta{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--text-3);}
+  .btn-meta .v{font-family:var(--mono);color:var(--text-2);}
+
+  .note{margin-top:20px;font-size:13px;color:var(--text-3);max-width:44ch;line-height:1.6;}
+  .note b{color:var(--text-2);font-weight:600}
+
+  /* hero glass panel */
+  .stage{aspect-ratio:1/.86;}
+  .glass{width:100%;height:100%;border-radius:var(--radius);background:var(--surface);
+    border:1px solid var(--border);backdrop-filter:blur(20px) saturate(1.3);
+    box-shadow:0 30px 80px -46px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+    display:flex;align-items:center;justify-content:space-between;padding:clamp(22px,4vw,40px);
+    position:relative;overflow:hidden;}
+  .dev{display:flex;flex-direction:column;align-items:center;gap:12px;z-index:2;}
+  .dev .screen{border:1px solid var(--border-strong);border-radius:var(--radius-xs);background:var(--bg-2);
+    display:grid;place-items:center;color:var(--text);box-shadow:0 12px 30px -18px rgba(0,0,0,.6);}
+  .dev.pc .screen{width:116px;height:80px}
+  .dev.ph .screen{width:54px;height:100px;border-radius:13px}
+  .dev .screen svg{width:40%;height:40%}
+  .dev label{font-size:12px;color:var(--text-3);font-weight:600;letter-spacing:.03em}
+  .track{position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-6px);
+    background:linear-gradient(90deg,transparent,var(--border-strong) 24%,var(--border-strong) 76%,transparent);z-index:1;}
+  .pulse{position:absolute;top:50%;transform:translateY(-9px);width:9px;height:9px;border-radius:50%;
+    background:var(--sent);box-shadow:0 0 0 5px color-mix(in srgb,var(--sent) 20%,transparent),0 0 20px 2px color-mix(in srgb,var(--sent) 45%,transparent);
+    left:27%;animation:travel 2.8s cubic-bezier(.5,0,.5,1) infinite;z-index:3;}
+  @keyframes travel{0%{left:28%;opacity:0}14%{opacity:1}86%{opacity:1}100%{left:72%;opacity:0}}
+  .chip{position:absolute;top:calc(50% - 42px);left:50%;transform:translateX(-50%);
+    font-size:11px;font-family:var(--mono);color:var(--text-2);background:var(--bg-2);
+    border:1px solid var(--border);border-radius:8px;padding:4px 9px;white-space:nowrap;
+    animation:bob 2.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
+
+  /* demo showcase */
+  .demo{padding:clamp(8px,2vw,24px) 0 clamp(30px,5vw,52px);}
+  .demo .lead{text-align:center;margin:0 auto clamp(22px,3vw,32px);max-width:44ch;}
+  .demo .lead h2{margin:0 0 8px}
+  .demo .lead p{margin:0;color:var(--text-2);font-size:15px;}
+  .player{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;
+    border:1px solid var(--border-strong);background:var(--bg-2);
+    box-shadow:0 50px 110px -54px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06);}
+  .player video,.player img{width:100%;height:100%;object-fit:cover;display:block;}
+  .placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:
+      radial-gradient(60% 60% at 50% 42%, rgba(255,255,255,.05), transparent 70%),
+      repeating-linear-gradient(-45deg, transparent 0 18px, rgba(255,255,255,.012) 18px 36px);}
+  .playwrap{position:relative;display:grid;place-items:center;}
+  .ring{position:absolute;width:78px;height:78px;border-radius:50%;border:1px solid var(--border-strong);
+    animation:ring 2.6s ease-out infinite;}
+  .ring.b{animation-delay:1.3s}
+  @keyframes ring{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.75);opacity:0}}
+  .play{position:relative;width:78px;height:78px;border-radius:50%;background:var(--accent);border:none;
+    display:grid;place-items:center;cursor:pointer;transition:transform .18s;box-shadow:0 14px 40px -10px rgba(0,0,0,.7);}
+  .play:hover{transform:scale(1.06)}
+  .play svg{width:26px;height:26px;color:var(--on-accent);margin-left:4px}
+  .ph-label{font-size:14px;color:var(--text-2);font-weight:500}
+  .ph-hint{font-size:12px;color:var(--text-3);font-family:var(--mono);text-align:center;padding:0 20px}
+
+  /* content sections */
+  .block{padding:clamp(38px,6vw,60px) 0;}
+  h2{font-size:clamp(21px,3vw,27px);line-height:1.15;letter-spacing:-.02em;font-weight:650;margin:0 0 26px;}
+
+  /* steps — plain numbered rows */
+  .steps{display:flex;flex-direction:column;gap:2px;}
+  .step{display:flex;gap:18px;align-items:baseline;padding:18px 0;border-top:1px solid var(--border);}
+  .step:last-child{border-bottom:1px solid var(--border);}
+  .step .n{font-family:var(--mono);font-size:14px;color:var(--text-2);flex:none;width:22px;}
+  .step .txt{font-size:16px;color:var(--text);}
+  .step .txt b{font-weight:600}
+  .step .txt span{color:var(--text-2)}
+
+  /* why — one glass card, simple rows */
+  .why{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:clamp(24px,4vw,36px);backdrop-filter:blur(16px) saturate(1.2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
+  .why ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:22px 32px;}
+  @media (max-width:640px){.why ul{grid-template-columns:1fr;gap:20px}}
+  .why li{display:flex;gap:13px;align-items:flex-start;}
+  .why .tick{flex:none;width:22px;height:22px;border-radius:50%;background:var(--surface-2);
+    border:1px solid var(--border);display:grid;place-items:center;margin-top:1px;}
+  .why .tick svg{width:12px;height:12px;color:var(--sent)}
+  .why b{display:block;font-size:15px;font-weight:600;margin-bottom:3px;letter-spacing:-.005em;}
+  .why p{margin:0;font-size:14px;color:var(--text-2);line-height:1.5;}
+
+  /* three ways to send */
+  .method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:760px){.method-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto;}}
+  .method{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;transition:.18s;}
+  .method:hover{background:var(--surface-2);transform:translateY(-3px);}
+  .method .well{position:relative;aspect-ratio:16/10;background:var(--bg-2);border-bottom:1px solid var(--border);overflow:hidden;}
+  .method .well video,.method .well img{width:100%;height:100%;object-fit:cover;display:block;}
+  .mini-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    background:
+      radial-gradient(60% 60% at 50% 42%, rgba(255,255,255,.045), transparent 70%),
+      repeating-linear-gradient(-45deg, transparent 0 14px, rgba(255,255,255,.01) 14px 28px);}
+  .mini-ph .micon{width:32px;height:32px;color:var(--text-2);}
+  .mini-ph .mtag{font-size:11px;color:var(--text-3);font-family:var(--mono);}
+  .method .info{padding:17px 20px 20px;}
+  .method .info h3{font-size:15.5px;font-weight:650;margin:0 0 5px;letter-spacing:-.01em;line-height:1.25;}
+  .method .info p{margin:0;font-size:13.5px;color:var(--text-2);line-height:1.5;}
+
+  /* closing */
+  .close{text-align:center;padding:clamp(44px,7vw,72px) 0 clamp(30px,5vw,44px);}
+  .close h2{margin-bottom:22px}
+  .close .cta-row{justify-content:center}
+
+  footer{border-top:1px solid var(--border);padding:28px 0 46px;color:var(--text-3);font-size:13px;}
+  .foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center;}
+  .foot a{color:var(--text-2);font-weight:500}
+  .foot a:hover{color:var(--text)}
+  .foot .dot{opacity:.4;margin:0 8px}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="aura"></div>
+
+<nav>
+  <div class="brand">
+    <span class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M8.5 8.5l1-1a3.5 3.5 0 015 5l-1 1M15.5 15.5l-1 1a3.5 3.5 0 01-5-5l1-1" stroke="var(--on-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    LocalLink
+  </div>
+  <a class="nav-link" href="https://github.com/KhaildAlbugami/LocalLink-app" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.87-.01-1.71-2.78.62-3.37-1.37-3.37-1.37-.46-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.55-1.14-4.55-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.28 2.75 1.05a9.4 9.4 0 015 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.02 10.02 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<section class="hero"><div class="wrap"><div class="hero-grid">
+  <div>
+    <span class="pill"><span class="pip"></span>Free · wireless · private</span>
+    <h1>Move files between your PC and iPhone — no cable, no cloud, no fuss.</h1>
+    <p class="sub">Drop a photo, a 4K video, a whole folder, or a bit of text onto LocalLink and it’s on your phone in seconds. Everything stays on your own Wi‑Fi — <b>no account, no upload, full original quality</b>.</p>
+    <div class="cta-row">
+      <a class="btn" id="dlBtn" href="https://github.com/KhaildAlbugami/LocalLink-app/releases/latest">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download for Windows
+      </a>
+      <div class="btn-meta">
+        <span>Windows 10 &amp; 11</span>
+        <span class="v" id="verChip">latest</span>
+      </div>
+    </div>
+    <p class="note">If Windows shows a blue “protected your PC” message the first time, click <b>More info → Run anyway</b>. It just means the app is from a small independent developer.</p>
+  </div>
+
+  <div class="player hero-player" data-media="assets/demo.mp4">
+    <div class="placeholder">
+      <div class="playwrap"><span class="ring"></span><span class="ring b"></span>
+        <button class="play" aria-label="Play demo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+      <div class="ph-label">Your demo video goes here</div>
+      <div class="ph-hint">a short clip of a file going from PC → iPhone</div>
+    </div>
+  </div>
+</div></div></section>
+
+<section class="block"><div class="wrap">
+  <h2>How it works</h2>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><span class="txt"><b>Install LocalLink on your PC.</b> <span>It sits quietly in the system tray.</span></span></div>
+    <div class="step"><span class="n">2</span><span class="txt"><b>Scan the QR code with your iPhone camera.</b> <span>No App Store, no login.</span></span></div>
+    <div class="step"><span class="n">3</span><span class="txt"><b>Send a file — it appears on your phone in seconds.</b> <span>Three easy ways, shown below.</span></span></div>
+  </div>
+</div></section>
+
+<section class="block ways"><div class="wrap">
+  <h2>Three ways to send</h2>
+  <div class="method-grid">
+    <div class="method">
+      <div class="well" data-media="assets/drag-drop.gif">
+        <div class="mini-ph">
+          <svg class="micon" viewBox="0 0 24 24" fill="none"><path d="M12 3v9m0 0l-3.5-3.5M12 12l3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14v4a2 2 0 002 2h12a2 2 0 002-2v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span class="mtag">drag-drop.gif</span>
+        </div>
+      </div>
+      <div class="info"><h3>Drag &amp; drop</h3><p>Drag any file straight onto the LocalLink window.</p></div>
+    </div>
+    <div class="method">
+      <div class="well" data-media="assets/right-click.gif">
+        <div class="mini-ph">
+          <svg class="micon" viewBox="0 0 24 24" fill="none"><path d="M5 3l6.5 17 2.4-6.9 6.9-2.4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <span class="mtag">right-click.gif</span>
+        </div>
+      </div>
+      <div class="info"><h3>Right‑click → Send to LocalLink</h3><p>Send any file straight from Windows Explorer, without opening the app.</p></div>
+    </div>
+    <div class="method">
+      <div class="well" data-media="assets/pick-files.gif">
+        <div class="mini-ph">
+          <svg class="micon" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <span class="mtag">pick-files.gif</span>
+        </div>
+      </div>
+      <div class="info"><h3>Pick from Files &amp; Folders</h3><p>Choose files — or a whole folder — from inside the app.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="block"><div class="wrap">
+  <h2>Why people like it</h2>
+  <div class="why"><ul>
+    <li><span class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Nothing leaves your network</b><p>Files go straight from your PC to your phone. There’s no server, so nothing is uploaded anywhere.</p></div></li>
+    <li><span class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Full original quality</b><p>Photos and videos arrive exactly as they were — nothing gets compressed or re‑encoded.</p></div></li>
+    <li><span class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>No account</b><p>No email, no password, no subscription. Install it and it works.</p></div></li>
+    <li><span class="tick"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Both ways, any size</b><p>PC to phone or phone to PC — including big 4K videos and whole folders.</p></div></li>
+  </ul></div>
+</div></section>
+
+<section class="close"><div class="wrap">
+  <h2>Give it a try — it’s free.</h2>
+  <div class="cta-row">
+    <a class="btn" id="dlBtn2" href="https://github.com/KhaildAlbugami/LocalLink-app/releases/latest">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download for Windows
+    </a>
+    <div class="btn-meta"><span>Free · Windows 10 &amp; 11</span><span class="v" id="verChip2">latest</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap"><div class="foot">
+  <div>LocalLink <span class="dot">·</span> 100% local, no tracking</div>
+  <div>
+    <a href="https://github.com/KhaildAlbugami/LocalLink-app" target="_blank" rel="noopener">GitHub</a>
+    <span class="dot">·</span>
+    <a href="https://github.com/KhaildAlbugami/LocalLink-app/releases" target="_blank" rel="noopener">All versions</a>
+    <span class="dot">·</span>
+    <span id="verFoot">v1.0.4</span>
+  </div>
+</div></div></footer>
+
+<script>
+(function(){
+  var REPO='KhaildAlbugami/LocalLink-app';
+  fetch('https://api.github.com/repos/'+REPO+'/releases/latest',{headers:{Accept:'application/vnd.github+json'}})
+    .then(function(r){return r.ok?r.json():Promise.reject()})
+    .then(function(d){
+      var exe=(d.assets||[]).filter(function(a){return /\.exe$/i.test(a.name)})[0];
+      var href=exe?exe.browser_download_url:d.html_url;
+      ['dlBtn','dlBtn2'].forEach(function(id){var b=document.getElementById(id);if(b&&href)b.href=href;});
+      if(d.tag_name){
+        ['verChip','verChip2'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=d.tag_name;});
+        var vf=document.getElementById('verFoot');if(vf)vf.textContent=d.tag_name;
+      }
+    })
+    .catch(function(){});
+})();
+
+// Auto-load the demo clips when their files exist; until then the placeholder stays.
+(function(){
+  function mount(el,url){
+    var ext=(url.split('.').pop()||'').toLowerCase();
+    var ph=el.querySelector('.placeholder,.mini-ph');
+    function show(node){ el.insertBefore(node, el.firstChild); if(ph) ph.style.display='none'; }
+    if(['mp4','webm','m4v','mov'].indexOf(ext)>=0){
+      var v=document.createElement('video');
+      v.muted=true; v.loop=true; v.autoplay=true; v.setAttribute('playsinline','');
+      v.addEventListener('loadeddata',function(){ show(v); var p=v.play&&v.play(); if(p&&p.catch)p.catch(function(){}); });
+      v.src=url;
+    } else {
+      var img=new Image(); img.alt='LocalLink demo';
+      img.onload=function(){ show(img); };
+      img.src=url;
+    }
+  }
+  document.querySelectorAll('[data-media]').forEach(function(el){ mount(el, el.getAttribute('data-media')); });
+})();
+</script>
+</body>
+</html>
