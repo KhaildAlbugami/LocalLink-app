@@ -80,9 +80,8 @@
 
   /* hero */
   .hero{padding:clamp(44px,8vw,92px) 0 clamp(30px,5vw,52px);}
-  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,56px);align-items:center;}
-  .hero-player{aspect-ratio:16/10;}
-  @media (max-width:800px){.hero-grid{grid-template-columns:1fr;gap:36px}}
+  .hero-text{max-width:660px;margin-bottom:clamp(28px,4.5vw,46px);}
+  .hero-player{aspect-ratio:2520/1080;width:100%;}
   .pill{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;
     color:var(--text-2);background:var(--surface);border:1px solid var(--border);
     padding:6px 13px;border-radius:var(--radius-sm);margin-bottom:22px;backdrop-filter:blur(10px);}
@@ -228,8 +227,8 @@
   </a>
 </nav>
 
-<section class="hero"><div class="wrap"><div class="hero-grid">
-  <div>
+<section class="hero"><div class="wrap">
+  <div class="hero-text">
     <span class="pill"><span class="pip"></span>Free · wireless · private</span>
     <h1>Move files between your PC and iPhone — no cable, no cloud, no fuss.</h1>
     <p class="sub">Drop a photo, a 4K video, a whole folder, or a bit of text onto LocalLink and it’s on your phone in seconds. Everything stays on your own Wi‑Fi — <b>no account, no upload, full original quality</b>.</p>
@@ -255,7 +254,7 @@
       <div class="ph-hint">a short clip of a file going from PC → iPhone</div>
     </div>
   </div>
-</div></div></section>
+</div></section>
 
 <section class="block"><div class="wrap">
   <h2>How it works</h2>
